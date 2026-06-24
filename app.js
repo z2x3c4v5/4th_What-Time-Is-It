@@ -388,7 +388,35 @@ function renderCombine() {
   });
 
   const practiceItem = { en, spoken, ko, h: t.h, m: t.m, actEmoji: a.actEmoji, word: t.digital + " · " + a.actKo };
-  div.append(top, visual, box, dialogBtn, makeSelectBtn(practiceItem));
+  const on = isSelected(en);
+
+  const actions = document.createElement("div");
+  actions.className = "preview-actions";
+
+  // ⭐ 추가 버튼 (담으면 ✓ 표시되고 비활성화)
+  const addBtn = document.createElement("button");
+  addBtn.className = "select-btn" + (on ? " on" : "");
+  addBtn.textContent = on ? "✓ 연습 목록에 있음" : "⭐ 연습 목록에 추가";
+  addBtn.disabled = on;
+  addBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    if (!isSelected(en)) toggleSelect(practiceItem);
+  });
+  actions.appendChild(addBtn);
+
+  // 🗑️ 제거 버튼 (담은 상태일 때만 보여줘요)
+  if (on) {
+    const rmBtn = document.createElement("button");
+    rmBtn.className = "remove-btn";
+    rmBtn.textContent = "🗑️ 연습 목록에서 빼기";
+    rmBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      if (isSelected(en)) toggleSelect(practiceItem);
+    });
+    actions.appendChild(rmBtn);
+  }
+
+  div.append(top, visual, box, dialogBtn, actions);
   prev.appendChild(div);
 }
 

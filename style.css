@@ -172,6 +172,18 @@ main { max-width: 980px; margin: 0 auto; padding: 14px 16px 50px; }
   background: rgba(251, 113, 133, 0.12); border-radius: 14px;
   padding: 16px 14px; margin-top: 4px;
 }
+/* 미리보기 버튼 묶음 (추가 / 제거) */
+.preview-actions { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.preview-actions .select-btn { margin-top: 0; }
+.select-btn:disabled { cursor: default; }
+.remove-btn {
+  width: 100%; border: 2px solid rgba(244, 63, 94, 0.4); cursor: pointer;
+  padding: 11px 14px; border-radius: 14px; font-weight: 800; font-size: 0.95rem;
+  background: #fff0f3; color: #be123c;
+  transition: transform 0.1s, background 0.2s;
+}
+.remove-btn:hover { background: #ffe0e6; }
+.remove-btn:active { transform: scale(0.97); }
 
 /* ===== Card grid ===== */
 .card-grid {
