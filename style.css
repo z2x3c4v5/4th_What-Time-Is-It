@@ -151,6 +151,7 @@ main { max-width: 980px; margin: 0 auto; padding: 14px 16px 50px; }
   transition: transform 0.1s, background 0.2s, color 0.2s, border-color 0.2s;
 }
 .chip .chip-emoji { font-size: 1.7rem; line-height: 1; }
+.chip.chip-sm { min-width: 56px; padding: 12px 10px; font-size: 1.05rem; }
 .chip:hover { background: rgba(255, 126, 182, 0.12); }
 .chip:active { transform: scale(0.94); }
 .chip.active {

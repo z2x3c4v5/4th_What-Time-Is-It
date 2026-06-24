@@ -49,6 +49,8 @@ const ACTIVITIES = [
     en: "It's time for lunch.",     ko: "점심 먹을 시간이에요." },
   { act: "dinner",    actKo: "저녁",      actEmoji: "🍽️", okFrom: 1020, okTo: 1200,
     en: "It's time for dinner.",    ko: "저녁 먹을 시간이에요." },
+  { act: "homework",  actKo: "숙제",      actEmoji: "📝", okFrom: 900,  okTo: 1260,
+    en: "It's time for homework.",  ko: "숙제할 시간이에요." },
   { act: "bed",       actKo: "잠자기",    actEmoji: "🛏️", okFrom: 1230, okTo: 1439,
     en: "It's time for bed.",       ko: "잘 시간이에요." },
 ];
@@ -88,5 +90,14 @@ const WORD_MEANINGS = {
   "class": "수업",
   "lunch": "점심 식사",
   "dinner": "저녁 식사",
+  "homework": "숙제",
   "bed": "침대; 잠자리 (time for bed: 잘 시간)",
+  // 시 (1~12) — 시간 고르기에서 사용
+  "1": "하나 (1)", "one": "하나 (1)",
+  "2": "둘 (2)", "two": "둘 (2)",
+  "3": "셋 (3)", "three": "셋 (3)",
+  "4": "넷 (4)", "four": "넷 (4)",
+  "5": "다섯 (5)", "five": "다섯 (5)",
+  "7": "일곱 (7)", "seven": "일곱 (7)",
+  "11": "열하나 (11)", "eleven": "열하나 (11)",
 };

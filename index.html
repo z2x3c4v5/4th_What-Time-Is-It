@@ -37,10 +37,14 @@
     <!-- ===== ① 시간 말하기 ===== -->
     <section id="tab-time" class="tab-panel active">
       <div class="section-block">
-        <h2>🕐 시간을 말해요 <span class="count">It's ~ o'clock.</span></h2>
-        <p class="hint">시계를 보고 <b>🔊 듣기</b> 로 시간 문장을 들어보세요. 낱말을 누르면 <b>뜻과 발음</b>이 나와요. <b>⭐</b> 로 담으면 <b>정확도 연습</b> 탭에서 따라 말할 수 있어요.</p>
+        <h2>🕐 시간을 골라 읽어요 <span class="count">It's ~ o'clock. / ~:30.</span></h2>
+        <p class="hint">① <b>몇 시</b>인지 고르고 ② <b>정각</b>인지 <b>30분</b>인지 골라요. 시계에 시간이 나오면 <b>🔊</b> 로 듣고 <b>🎙️ 마이크</b>로 따라 읽어 <b>정확도</b>를 확인해요! <b>⭐</b> 로 담아 <b>정확도 연습</b> 탭에서 더 연습할 수도 있어요.</p>
         <div id="question-card"></div>
-        <div id="time-grid" class="card-grid"></div>
+        <div class="combine-step"><span class="step-no">①</span> 몇 시예요? (시)</div>
+        <div id="time-hours" class="chip-row"></div>
+        <div class="combine-step"><span class="step-no">②</span> 정각 / 30분</div>
+        <div id="time-mins" class="chip-row"></div>
+        <div id="time-result"></div>
       </div>
     </section>
 

@@ -252,14 +252,116 @@ function makeAnswerCard(item, tone, opts) {
   return div;
 }
 
+/* 시(時) 1~12 영어 낱말 (30분 발음을 자연스럽게 만들 때 사용) */
+const NUM_TO_WORD = {
+  1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
+  7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve",
+};
+
+let pickHour = null;   // 고른 시 (1~12)
+let pickMin = 0;       // 0 = 정각, 30 = 30분
+
+/* 고른 시·분으로 한 문장 만들기
+ *  정각  → It's 3 o'clock.
+ *  30분  → It's 3:30.  (발음은 "It's three thirty.") */
+function buildTimeItem(hour, min) {
+  const digital = hour + ":" + (min === 30 ? "30" : "00");
+  const en = min === 30 ? `It's ${hour}:30.` : `It's ${hour} o'clock.`;
+  const spoken = min === 30 ? `It's ${NUM_TO_WORD[hour]} thirty.` : `It's ${hour} o'clock.`;
+  const ko = min === 30 ? `${hour}시 30분이에요.` : `${hour}시예요.`;
+  return { en, spoken, ko, h: hour, m: min, digital, word: digital };
+}
+
+function speakTimePreview() {
+  if (pickHour == null) return;
+  speak(buildTimeItem(pickHour, pickMin).spoken, 0.9);
+}
+
 function renderTime() {
   document.getElementById("question-card").replaceChildren(makeQuestionCard());
-  const grid = document.getElementById("time-grid");
-  grid.innerHTML = "";
-  TIMES.forEach((t, i) => {
-    const practiceItem = { en: t.en, spoken: t.spoken, ko: t.ko, h: t.h, m: t.m, word: t.timeKo };
-    grid.appendChild(makeAnswerCard(t, i, { tag: t.clockEmoji + " " + t.timeKo, practiceItem }));
+
+  // ① 시 고르기 (1~12)
+  const hours = document.getElementById("time-hours");
+  hours.innerHTML = "";
+  for (let hr = 1; hr <= 12; hr++) {
+    const chip = document.createElement("button");
+    chip.className = "chip chip-sm" + (hr === pickHour ? " active" : "");
+    chip.innerHTML = `<span class="chip-label">${hr}시</span>`;
+    chip.addEventListener("click", () => {
+      pickHour = (pickHour === hr) ? null : hr;
+      synth.cancel(); hidePopup(); renderTime();
+      if (pickHour === hr) speakTimePreview();
+    });
+    hours.appendChild(chip);
+  }
+
+  // ② 정각 / 30분 고르기
+  const mins = document.getElementById("time-mins");
+  mins.innerHTML = "";
+  [{ m: 0, label: "정각", emoji: "🕐" }, { m: 30, label: "30분", emoji: "🕧" }].forEach(o => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (o.m === pickMin ? " active" : "");
+    chip.innerHTML = `<span class="chip-emoji">${o.emoji}</span><span class="chip-label">${o.label}</span>`;
+    chip.addEventListener("click", () => {
+      pickMin = o.m;
+      synth.cancel(); hidePopup(); renderTime();
+      speakTimePreview();
+    });
+    mins.appendChild(chip);
   });
+
+  renderTimeResult();
+}
+
+function renderTimeResult() {
+  const wrap = document.getElementById("time-result");
+  wrap.innerHTML = "";
+  if (pickHour == null) {
+    const hint = document.createElement("div");
+    hint.className = "combine-hint";
+    hint.innerHTML = "위에서 <b>몇 시</b>인지 골라보세요! 🕐";
+    wrap.appendChild(hint);
+    return;
+  }
+
+  const item = buildTimeItem(pickHour, pickMin);
+  const card = document.createElement("div");
+  card.className = "card preview-card";
+
+  const top = document.createElement("div");
+  top.className = "card-top";
+  const tag = document.createElement("span");
+  tag.className = "card-tag";
+  tag.textContent = "🕐 " + item.digital;
+  top.append(tag);
+
+  const visual = makeVisual({ h: item.h, m: item.m });
+
+  const box = document.createElement("div");
+  box.className = "q-box";
+  const txt = document.createElement("div");
+  txt.className = "q-text";
+  const en = document.createElement("div");
+  en.className = "en";
+  en.appendChild(buildWords(item.en));
+  const ko = document.createElement("div");
+  ko.className = "ko";
+  ko.textContent = item.ko;
+  txt.append(en, ko);
+  const speakBtn = document.createElement("button");
+  speakBtn.className = "speak-btn";
+  speakBtn.setAttribute("aria-label", "문장 듣기");
+  speakBtn.textContent = "🔊";
+  speakBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    speak(item.spoken, null, () => card.classList.add("speaking"), () => card.classList.remove("speaking"));
+  });
+  box.append(txt, speakBtn);
+
+  card.append(top, visual, box);
+  attachMic(card, item, { label: "마이크를 누르고 따라 읽어요" });  // 🎙️ 따라 읽기 (정확도)
+  card.append(makeSelectBtn(item));      // ⭐ 연습 목록에 담기
+  wrap.appendChild(card);
 }
 
 /* =========================================================
@@ -520,6 +622,66 @@ function practiceAttempt(target, cb) {
   try { rec.start(); } catch (e) { recBusy = false; cb.onend && cb.onend(); }
 }
 
+/* 🎙️ 따라 읽기(정확도 측정) 위젯을 카드에 붙여요. (연습 탭·시간 탭 공용) */
+function attachMic(div, item, opts) {
+  opts = opts || {};
+  const idleLabel = opts.label || "마이크를 누르고 말해보세요";
+
+  const micArea = document.createElement("div");
+  micArea.className = "mic-area";
+  const mic = document.createElement("button");
+  mic.className = "mic-btn";
+  mic.setAttribute("aria-label", "말하기");
+  mic.textContent = "🎙️";
+  const micLabel = document.createElement("div");
+  micLabel.className = "mic-label";
+  micLabel.textContent = idleLabel;
+  micArea.append(mic, micLabel);
+
+  const statsEl = document.createElement("div");
+  statsEl.className = "pstats";
+  const fb = document.createElement("div");
+  fb.className = "mic-feedback";
+
+  function renderStats(last) {
+    const s = stats[item.en] || { attempts: 0, best: 0 };
+    statsEl.innerHTML =
+      `정확도 <b class="acc">${last != null ? last + "%" : "--"}</b>` +
+      ` · 최고 <b class="best">${s.best ? s.best + "%" : "--"}</b>` +
+      ` · 연습 <b>${s.attempts}</b>회`;
+  }
+  renderStats(null);
+
+  if (!srSupported) { mic.disabled = true; mic.title = "이 브라우저는 음성 인식을 지원하지 않아요 (크롬 권장)"; }
+
+  mic.addEventListener("click", () => {
+    if (recBusy || !srSupported) return;
+    mic.classList.add("recording");
+    micLabel.textContent = "🔴 녹음 중... 말해보세요";
+    fb.textContent = "또박또박 말해보세요!";
+    fb.className = "mic-feedback";
+    practiceAttempt(item.en, {
+      onresult: (score, heard) => {
+        const s = stats[item.en] || { attempts: 0, best: 0 };
+        s.attempts++; s.best = Math.max(s.best, score);
+        stats[item.en] = s; saveStats();
+        renderStats(score);
+        const shown = prettyHeard(heard, item.en);
+        if (score >= 70) { fb.className = "mic-feedback good"; fb.innerHTML = `⭐ 훌륭해요! (${score}%)<br><span class="heard">내 발음: ${shown}</span>`; }
+        else if (score >= 40) { fb.className = "mic-feedback good"; fb.innerHTML = `👍 좋아요! 한 번 더! (${score}%)<br><span class="heard">내 발음: ${shown}</span>`; }
+        else { fb.className = "mic-feedback bad"; fb.innerHTML = `🔁 다시 또박또박! (${score}%)<br><span class="heard">내 발음: ${shown || "(못 들었어요)"}</span>`; }
+      },
+      onerror: err => {
+        fb.className = "mic-feedback bad";
+        fb.textContent = err === "not-allowed" ? "마이크 권한을 허용해 주세요." : "다시 시도해 주세요.";
+      },
+      onend: () => { mic.classList.remove("recording"); micLabel.textContent = idleLabel; }
+    });
+  });
+
+  div.append(micArea, statsEl, fb);
+}
+
 function makePracticeCard(item) {
   const div = document.createElement("div");
   div.className = "card pcard";
@@ -561,59 +723,8 @@ function makePracticeCard(item) {
   speakBtn.addEventListener("click", () => speak(item.spoken || item.en));
   box.append(txt, speakBtn);
 
-  const micArea = document.createElement("div");
-  micArea.className = "mic-area";
-  const mic = document.createElement("button");
-  mic.className = "mic-btn";
-  mic.setAttribute("aria-label", "말하기");
-  mic.textContent = "🎙️";
-  const micLabel = document.createElement("div");
-  micLabel.className = "mic-label";
-  micLabel.textContent = "마이크를 누르고 말해보세요";
-  micArea.append(mic, micLabel);
-
-  const statsEl = document.createElement("div");
-  statsEl.className = "pstats";
-  const fb = document.createElement("div");
-  fb.className = "mic-feedback";
-
-  function renderStats(last) {
-    const s = stats[item.en] || { attempts: 0, best: 0 };
-    statsEl.innerHTML =
-      `정확도 <b class="acc">${last != null ? last + "%" : "--"}</b>` +
-      ` · 최고 <b class="best">${s.best ? s.best + "%" : "--"}</b>` +
-      ` · 연습 <b>${s.attempts}</b>회`;
-  }
-  renderStats(null);
-
-  if (!srSupported) { mic.disabled = true; mic.title = "이 브라우저는 음성 인식을 지원하지 않아요 (크롬 권장)"; }
-
-  mic.addEventListener("click", () => {
-    if (recBusy || !srSupported) return;
-    mic.classList.add("recording");
-    micLabel.textContent = "🔴 녹음 중... 말해보세요";
-    fb.textContent = "또박또박 말해보세요!";
-    fb.className = "mic-feedback";
-    practiceAttempt(item.en, {
-      onresult: (score, heard) => {
-        const s = stats[item.en] || { attempts: 0, best: 0 };
-        s.attempts++; s.best = Math.max(s.best, score);
-        stats[item.en] = s; saveStats();
-        renderStats(score);
-        const shown = prettyHeard(heard, item.en);
-        if (score >= 70) { fb.className = "mic-feedback good"; fb.innerHTML = `⭐ 훌륭해요! (${score}%)<br><span class="heard">내 발음: ${shown}</span>`; }
-        else if (score >= 40) { fb.className = "mic-feedback good"; fb.innerHTML = `👍 좋아요! 한 번 더! (${score}%)<br><span class="heard">내 발음: ${shown}</span>`; }
-        else { fb.className = "mic-feedback bad"; fb.innerHTML = `🔁 다시 또박또박! (${score}%)<br><span class="heard">내 발음: ${shown || "(못 들었어요)"}</span>`; }
-      },
-      onerror: err => {
-        fb.className = "mic-feedback bad";
-        fb.textContent = err === "not-allowed" ? "마이크 권한을 허용해 주세요." : "다시 시도해 주세요.";
-      },
-      onend: () => { mic.classList.remove("recording"); micLabel.textContent = "마이크를 누르고 말해보세요"; }
-    });
-  });
-
-  div.append(top, visual, box, micArea, statsEl, fb);
+  div.append(top, visual, box);
+  attachMic(div, item);
   return div;
 }
 
