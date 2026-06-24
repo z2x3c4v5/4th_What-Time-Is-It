@@ -165,7 +165,7 @@ function makeSelectBtn(item) {
   sel.className = "select-btn";
   const on = isSelected(item.en);
   sel.classList.toggle("on", on);
-  sel.textContent = on ? "✓ 연습 목록에 있음" : "⭐ 연습 목록에 추가";
+  sel.textContent = on ? "✓ 담음 — 눌러서 빼기" : "⭐ 연습 목록에 추가";
   sel.addEventListener("click", e => { e.stopPropagation(); toggleSelect(item); });
   return sel;
 }
@@ -244,7 +244,7 @@ function makeAnswerCard(item, tone, opts) {
   speakBtn.textContent = "🔊";
   speakBtn.addEventListener("click", e => {
     e.stopPropagation();
-    speak(item.en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
+    speak(item.spoken || item.en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
   });
   box.append(txt, speakBtn);
 
@@ -257,7 +257,7 @@ function renderTime() {
   const grid = document.getElementById("time-grid");
   grid.innerHTML = "";
   TIMES.forEach((t, i) => {
-    const practiceItem = { en: t.en, ko: t.ko, h: t.h, m: t.m, word: t.timeKo };
+    const practiceItem = { en: t.en, spoken: t.spoken, ko: t.ko, h: t.h, m: t.m, word: t.timeKo };
     grid.appendChild(makeAnswerCard(t, i, { tag: t.clockEmoji + " " + t.timeKo, practiceItem }));
   });
 }
@@ -284,7 +284,7 @@ let selActIdx = null;
 function stripLead(en, lead) { return en.replace(lead, "").replace(/\.$/, ""); }
 
 function renderCombine() {
-  // ① 시간 칩
+  // ① 시간 칩 (누른 칩을 다시 누르면 선택이 취소돼요)
   const timeRow = document.getElementById("combine-times");
   timeRow.innerHTML = "";
   TIMES.forEach((t, i) => {
@@ -292,13 +292,14 @@ function renderCombine() {
     chip.className = "chip" + (i === selTimeIdx ? " active" : "");
     chip.innerHTML = `<span class="chip-emoji">${t.clockEmoji}</span><span class="chip-label">${stripLead(t.en, /^It's\s*/)}</span>`;
     chip.addEventListener("click", () => {
-      selTimeIdx = i; synth.cancel(); hidePopup(); renderCombine();
-      speak(t.en, 0.85);
+      selTimeIdx = (selTimeIdx === i) ? null : i;
+      synth.cancel(); hidePopup(); renderCombine();
+      if (selTimeIdx === i) speak(t.spoken || t.en, 0.85);
     });
     timeRow.appendChild(chip);
   });
 
-  // ② 할 일 칩
+  // ② 할 일 칩 (누른 칩을 다시 누르면 선택이 취소돼요)
   const actRow = document.getElementById("combine-acts");
   actRow.innerHTML = "";
   ACTIVITIES.forEach((a, i) => {
@@ -306,8 +307,9 @@ function renderCombine() {
     chip.className = "chip" + (i === selActIdx ? " active" : "");
     chip.innerHTML = `<span class="chip-emoji">${a.actEmoji}</span><span class="chip-label">${stripLead(a.en, /^It's time for\s*/)}</span>`;
     chip.addEventListener("click", () => {
-      selActIdx = i; synth.cancel(); hidePopup(); renderCombine();
-      speak(a.en, 0.85);
+      selActIdx = (selActIdx === i) ? null : i;
+      synth.cancel(); hidePopup(); renderCombine();
+      if (selActIdx === i) speak(a.en, 0.85);
     });
     actRow.appendChild(chip);
   });
@@ -324,11 +326,14 @@ function renderCombine() {
   }
 
   const t = TIMES[selTimeIdx], a = ACTIVITIES[selActIdx];
+  // 시간대가 맞는 짝만 조합할 수 있어요 (예: 8시에 저녁 ❌)
+  const valid = t.min24 >= a.okFrom && t.min24 <= a.okTo;
   const en = t.en + " " + a.en;
+  const spoken = (t.spoken || t.en) + " " + a.en;
   const ko = t.ko + " " + a.ko;
 
   const div = document.createElement("div");
-  div.className = "card preview-card";
+  div.className = "card preview-card" + (valid ? "" : " invalid");
 
   const top = document.createElement("div");
   top.className = "card-top";
@@ -338,6 +343,16 @@ function renderCombine() {
   top.append(tag);
 
   const visual = makeVisual({ h: t.h, m: t.m, actEmoji: a.actEmoji });
+
+  // 어울리지 않는 짝이면 안내만 보여주고 연습 목록에 담을 수 없어요
+  if (!valid) {
+    const warn = document.createElement("div");
+    warn.className = "combine-warn";
+    warn.innerHTML = `🤔 <b>${t.timeKo}</b>에 <b>${a.actKo}</b>? 어울리는 짝이 아니에요!<br>시간이나 할 일을 다시 골라보세요.`;
+    div.append(top, visual, warn);
+    prev.appendChild(div);
+    return;
+  }
 
   const box = document.createElement("div");
   box.className = "q-box";
@@ -359,7 +374,7 @@ function renderCombine() {
   speakBtn.textContent = "🔊";
   speakBtn.addEventListener("click", e => {
     e.stopPropagation();
-    speak(en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
+    speak(spoken, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
   });
   box.append(txt, speakBtn);
 
@@ -369,10 +384,10 @@ function renderCombine() {
   dialogBtn.textContent = "🎧 묻고 답하기 전체 듣기";
   dialogBtn.addEventListener("click", e => {
     e.stopPropagation();
-    speak(QUESTION.en + " " + en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
+    speak(QUESTION.en + " " + spoken, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
   });
 
-  const practiceItem = { en, ko, h: t.h, m: t.m, actEmoji: a.actEmoji, word: t.digital + " · " + a.actKo };
+  const practiceItem = { en, spoken, ko, h: t.h, m: t.m, actEmoji: a.actEmoji, word: t.digital + " · " + a.actKo };
   div.append(top, visual, box, dialogBtn, makeSelectBtn(practiceItem));
   prev.appendChild(div);
 }
@@ -515,7 +530,7 @@ function makePracticeCard(item) {
   const speakBtn = document.createElement("button");
   speakBtn.className = "speak-btn";
   speakBtn.textContent = "🔊";
-  speakBtn.addEventListener("click", () => speak(item.en));
+  speakBtn.addEventListener("click", () => speak(item.spoken || item.en));
   box.append(txt, speakBtn);
 
   const micArea = document.createElement("div");

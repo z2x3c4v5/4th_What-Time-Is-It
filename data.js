@@ -14,35 +14,42 @@ const QUESTION = {
   ko: "지금 몇 시예요?",
 };
 
-/* ===== ① 시간 말하기 (It's ___ o'clock.) ===== */
+/* ===== ① 시간 말하기 (It's ___ o'clock. / It's 8:30.) =====
+ * - 30분 단위는 화면에 "It's 8:30." 처럼 보여줘요. (발음은 spoken 으로)
+ * - min24 : 하루 24시간 기준 분(分). 조합 가능 여부를 따질 때 사용해요.
+ *           (6시·10시 30분은 저녁/밤이라 18:00·22:30 으로 계산)
+ */
 const TIMES = [
-  { h: 8,  m: 0,  digital: "8:00",  clockEmoji: "🕗", timeKo: "8시",
-    en: "It's 8 o'clock.",   ko: "8시예요." },
-  { h: 8,  m: 30, digital: "8:30",  clockEmoji: "🕣", timeKo: "8시 30분",
-    en: "It's eight thirty.", ko: "8시 30분이에요." },
-  { h: 9,  m: 0,  digital: "9:00",  clockEmoji: "🕘", timeKo: "9시",
-    en: "It's 9 o'clock.",   ko: "9시예요." },
-  { h: 12, m: 0,  digital: "12:00", clockEmoji: "🕛", timeKo: "12시",
-    en: "It's 12 o'clock.",  ko: "12시예요." },
-  { h: 6,  m: 0,  digital: "6:00",  clockEmoji: "🕕", timeKo: "6시",
-    en: "It's 6 o'clock.",   ko: "6시예요." },
-  { h: 10, m: 30, digital: "10:30", clockEmoji: "🕤", timeKo: "10시 30분",
-    en: "It's ten thirty.",  ko: "10시 30분이에요." },
+  { h: 8,  m: 0,  digital: "8:00",  clockEmoji: "🕗", timeKo: "8시",      min24: 480,
+    en: "It's 8 o'clock.", ko: "8시예요." },
+  { h: 8,  m: 30, digital: "8:30",  clockEmoji: "🕣", timeKo: "8시 30분",  min24: 510,
+    en: "It's 8:30.", spoken: "It's eight thirty.", ko: "8시 30분이에요." },
+  { h: 9,  m: 0,  digital: "9:00",  clockEmoji: "🕘", timeKo: "9시",      min24: 540,
+    en: "It's 9 o'clock.", ko: "9시예요." },
+  { h: 12, m: 0,  digital: "12:00", clockEmoji: "🕛", timeKo: "12시",     min24: 720,
+    en: "It's 12 o'clock.", ko: "12시예요." },
+  { h: 6,  m: 0,  digital: "6:00",  clockEmoji: "🕕", timeKo: "6시",      min24: 1080,
+    en: "It's 6 o'clock.", ko: "6시예요." },
+  { h: 10, m: 30, digital: "10:30", clockEmoji: "🕤", timeKo: "10시 30분", min24: 1350,
+    en: "It's 10:30.", spoken: "It's ten thirty.", ko: "10시 30분이에요." },
 ];
 
-/* ===== ② 할 일 말하기 (It's time for ___.) ===== */
+/* ===== ② 할 일 말하기 (It's time for ___.) =====
+ * - okFrom ~ okTo : 이 할 일이 어울리는 시간대(24시간 분). 이 범위 밖이면
+ *   조합할 수 없어요. (예: 아침 8시에 저녁 ❌, 9시에 학교 ❌)
+ */
 const ACTIVITIES = [
-  { act: "breakfast", actKo: "아침 식사", actEmoji: "🍳",
+  { act: "breakfast", actKo: "아침 식사", actEmoji: "🍳", okFrom: 360,  okTo: 540,
     en: "It's time for breakfast.", ko: "아침 먹을 시간이에요." },
-  { act: "school",    actKo: "학교",      actEmoji: "🏫",
+  { act: "school",    actKo: "학교",      actEmoji: "🏫", okFrom: 420,  okTo: 525,
     en: "It's time for school.",    ko: "학교 갈 시간이에요." },
-  { act: "class",     actKo: "수업",      actEmoji: "📖",
+  { act: "class",     actKo: "수업",      actEmoji: "📖", okFrom: 530,  okTo: 700,
     en: "It's time for class.",     ko: "수업할 시간이에요." },
-  { act: "lunch",     actKo: "점심",      actEmoji: "🍱",
+  { act: "lunch",     actKo: "점심",      actEmoji: "🍱", okFrom: 690,  okTo: 810,
     en: "It's time for lunch.",     ko: "점심 먹을 시간이에요." },
-  { act: "dinner",    actKo: "저녁",      actEmoji: "🍽️",
+  { act: "dinner",    actKo: "저녁",      actEmoji: "🍽️", okFrom: 1020, okTo: 1200,
     en: "It's time for dinner.",    ko: "저녁 먹을 시간이에요." },
-  { act: "bed",       actKo: "잠자기",    actEmoji: "🛏️",
+  { act: "bed",       actKo: "잠자기",    actEmoji: "🛏️", okFrom: 1230, okTo: 1439,
     en: "It's time for bed.",       ko: "잘 시간이에요." },
 ];
 
@@ -73,6 +80,8 @@ const WORD_MEANINGS = {
   "six": "여섯 (6)",
   "thirty": "삼십 (30분, 반)",
   "30": "삼십 (30분, 반)",
+  "8:30": "여덟 시 삼십 분 (8:30)",
+  "10:30": "열 시 삼십 분 (10:30)",
   // 하루 일과
   "breakfast": "아침 식사",
   "school": "학교",
