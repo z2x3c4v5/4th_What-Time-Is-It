@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What time is it? · 4학년 영어</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="balloon b1"></div>
+    <div class="balloon b2"></div>
+    <div class="balloon b3"></div>
+    <h1>🕐 What time is it? 듣고 따라 말해요!</h1>
+    <p class="subtitle">What time is it? · It's 8 o'clock. It's time for breakfast.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="listen">🗣️ 듣고 따라하기</button>
+    <button class="tab-btn" data-tab="practice">🎤 정확도 연습 <span id="practice-count" class="tab-count">0</span></button>
+  </nav>
+
+  <div class="toolbar">
+    <label class="speed-control">말하기 속도
+      <input id="rate" type="range" min="0.6" max="1.1" step="0.05" value="0.85" />
+    </label>
+    <span id="voice-status" class="voice-status"></span>
+  </div>
+
+  <main>
+    <!-- ===== 듣고 따라하기 ===== -->
+    <section id="tab-listen" class="tab-panel active">
+      <div class="section-block">
+        <h2>🗣️ 듣고 따라 말해 봐요 <span class="count" id="listen-count">6개</span></h2>
+        <div class="cat-switch" id="listen-cats"></div>
+        <p class="hint">시계를 보고 <b>🔊 듣기</b> 로 문장을 들어보세요. 영어 낱말을 누르면 <b>뜻과 발음</b>을 알 수 있어요. 마음에 드는 문장은 <b>⭐ 연습 목록에 추가</b> 를 눌러 담고, <b>정확도 연습</b> 탭에서 마이크로 따라 말해 점수를 받아보세요!</p>
+        <div id="question-card"></div>
+        <div id="listen-grid" class="card-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===== 정확도 연습 ===== -->
+    <section id="tab-practice" class="tab-panel">
+      <div class="section-block">
+        <h2>🎤 정확도 연습</h2>
+        <p class="hint">⭐ 로 담은 문장을 <b>듣고 따라 말하면</b> 마이크가 <b>정확도</b>를 측정해요! <b>듣고 따라하기</b> 탭에서 카드 아래 <b>⭐ 연습 목록에 추가</b> 를 눌러 연습할 문장을 담아보세요. (크롬에서 가장 잘 돼요 😊)</p>
+        <p id="practice-empty" class="practice-empty">
+          아직 담은 문장이 없어요! <b>듣고 따라하기</b> 탭에서 <b>⭐</b> 로 연습할 문장을 담아보세요.
+        </p>
+        <div id="practice-list" class="card-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span class="voice-status">4학년 영어 · What time is it? 🕐 듣고 따라 말하기</span>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

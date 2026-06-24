@@ -1,0 +1,337 @@
+:root {
+  /* 🌈 무지개·사탕 테마 — 밝고 친근하게 */
+  --bg1: #fff1f7;
+  --bg2: #eafcff;
+  --primary: #ff7eb6;       /* 캔디 핑크 */
+  --primary-dark: #e0567f;  /* 진한 핑크 */
+  --accent: #6c5ce7;        /* 보라 */
+  --sky: #4cc9f0;           /* 하늘색 */
+  --sun: #ffd23f;           /* 노랑 */
+  --pos: #22c55e;           /* 잘함 (초록) */
+  --neg: #fb7185;           /* 다시 (코랄) */
+  --card: rgba(255, 255, 255, 0.9);
+  --text: #4a2f4d;
+  --muted: #9a7a92;
+  --ring: rgba(255, 126, 182, 0.45);
+  --shadow: 0 10px 30px rgba(224, 86, 127, 0.18);
+  --shadow-sm: 0 4px 14px rgba(224, 86, 127, 0.14);
+  /* 영어는 Comic Sans(없으면 웹폰트 Comic Neue), 한글은 나눔라운드 */
+  --font: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", "NanumSquareRound", cursive;
+}
+
+* { box-sizing: border-box; font-family: var(--font); }
+
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(800px 420px at 88% -6%, #ffe1ef 0%, transparent 55%),
+    radial-gradient(900px 520px at -8% 4%, #d6f6ff 0%, transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, #fff7cf 0%, transparent 55%),
+    linear-gradient(170deg, var(--bg1) 0%, #f3f0ff 50%, var(--bg2) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Header ===== */
+.app-header {
+  position: relative; overflow: hidden;
+  text-align: center;
+  padding: 30px 16px 26px;
+  background: linear-gradient(120deg, #ff9ec7 0%, #ff7eb6 40%, #b388ff 100%);
+  color: #fff;
+  border-radius: 0 0 34px 34px;
+  box-shadow: var(--shadow);
+}
+.app-header h1 { position: relative; z-index: 2; margin: 0; font-size: 1.65rem; line-height: 1.35; text-shadow: 0 2px 6px rgba(180, 60, 110, 0.35); }
+.subtitle { position: relative; z-index: 2; margin: 10px 0 0; opacity: 0.98; font-size: 0.95rem; }
+/* 풍선 장식 */
+.app-header .balloon {
+  position: absolute; z-index: 1; width: 54px; height: 64px;
+  border-radius: 50% 50% 48% 48%;
+  opacity: 0.9; filter: blur(0.2px);
+}
+.app-header .balloon::after {
+  content: ""; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+  width: 2px; height: 16px; background: rgba(255,255,255,0.7);
+}
+.b1 { top: -10px; right: 26px; background: radial-gradient(circle at 35% 30%, #fff, #ffd23f); }
+.b2 { top: 24px; right: 78px; width: 40px; height: 48px; background: radial-gradient(circle at 35% 30%, #fff, #4cc9f0); opacity: 0.8; }
+.b3 { top: 18px; left: 28px; width: 44px; height: 54px; background: radial-gradient(circle at 35% 30%, #fff, #b9fbc0); opacity: 0.85; }
+
+/* ===== 도구막대 ===== */
+.toolbar {
+  max-width: 980px; margin: 14px auto 0; padding: 0 16px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-wrap: wrap;
+}
+/* ===== Tabs ===== */
+.tabs {
+  display: flex; gap: 10px; justify-content: center;
+  padding: 12px 14px; max-width: 980px; margin: 16px auto 0; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(255, 241, 247, 0.92);
+  backdrop-filter: blur(6px);
+}
+.tab-btn {
+  flex: 1; min-width: 140px; max-width: 240px; padding: 13px 10px;
+  border: none; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--primary-dark); font-size: 1.0rem; font-weight: 800;
+  cursor: pointer; backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-sm); transition: transform 0.12s, background 0.2s, color 0.2s;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+}
+.tab-btn:active { transform: scale(0.96); }
+.tab-count {
+  display: inline-block; min-width: 20px; padding: 1px 7px; margin-left: 2px;
+  font-size: 0.78rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5); color: inherit;
+}
+.tab-btn.active .tab-count { background: rgba(255, 255, 255, 0.32); }
+
+main { max-width: 980px; margin: 0 auto; padding: 14px 16px 50px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fade 0.28s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
+
+/* ===== Sections ===== */
+.section-block { margin-bottom: 30px; }
+.section-block h2 { font-size: 1.3rem; margin: 6px 0 4px; display: flex; align-items: center; gap: 8px; }
+.count {
+  font-size: 0.75rem; font-weight: 800; color: #fff;
+  background: var(--primary); padding: 3px 10px; border-radius: 20px;
+}
+.hint { color: var(--muted); margin: 6px 0 16px; font-size: 0.92rem; line-height: 1.55; }
+
+/* ===== 주제 선택 ===== */
+.cat-switch { display: flex; gap: 8px; margin: 8px 0 14px; flex-wrap: wrap; }
+.cat-btn {
+  border: 2px solid rgba(255, 126, 182, 0.3); cursor: pointer;
+  padding: 9px 18px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--primary-dark); font-weight: 800; font-size: 0.95rem;
+  transition: transform 0.1s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+.cat-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; border-color: transparent;
+}
+.cat-btn:active { transform: scale(0.95); }
+
+/* ===== 묻는 말 카드 ===== */
+#question-card { margin-bottom: 18px; }
+.card.qcard {
+  background: linear-gradient(135deg, #fff7fb, #f3eeff);
+  border: 2px solid #e3d6ff;
+  max-width: 460px; margin: 0 auto;
+}
+.card.qcard .emoji { font-size: 3.4rem; margin: 6px 0 12px; }
+
+/* ===== Card grid ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  position: relative;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding: 16px 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.card.speaking { box-shadow: 0 0 0 3px var(--ring), var(--shadow); }
+
+.card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.card-tag {
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.3px;
+  color: #fff; background: rgba(255, 126, 182, 0.7);
+  padding: 4px 11px; border-radius: 999px;
+}
+.card-tag:empty { display: none; }
+
+.card .emoji {
+  font-size: 4.6rem; line-height: 1; text-align: center; margin: 10px 0 16px;
+}
+
+/* ===== 아날로그 시계 ===== */
+.visual { position: relative; margin: 10px 0 16px; }
+.clock { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+.clock-face {
+  position: relative; width: 124px; height: 124px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 36%, #ffffff, #fff4fa);
+  border: 6px solid var(--accent);
+  box-shadow: inset 0 0 0 4px #fff, var(--shadow-sm);
+}
+.clock-face .num { position: absolute; font-size: 0.82rem; font-weight: 800; color: var(--primary-dark); }
+.clock-face .num12 { top: 7px; left: 50%; transform: translateX(-50%); }
+.clock-face .num3 { right: 9px; top: 50%; transform: translateY(-50%); }
+.clock-face .num6 { bottom: 7px; left: 50%; transform: translateX(-50%); }
+.clock-face .num9 { left: 9px; top: 50%; transform: translateY(-50%); }
+.clock-face .hand {
+  position: absolute; left: 50%; bottom: 50%;
+  transform-origin: 50% 100%; border-radius: 6px;
+}
+.clock-face .hand.hour { width: 7px; height: 32px; margin-left: -3.5px; background: var(--primary-dark); }
+.clock-face .hand.minute { width: 5px; height: 46px; margin-left: -2.5px; background: var(--accent); }
+.clock-face .center {
+  position: absolute; left: 50%; top: 50%; width: 14px; height: 14px;
+  margin: -7px 0 0 -7px; border-radius: 50%;
+  background: var(--sun); border: 3px solid #fff; z-index: 2;
+}
+.clock-digital {
+  font-weight: 800; font-size: 1.05rem; color: var(--text);
+  background: rgba(255, 255, 255, 0.85); padding: 3px 14px; border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+.act-emoji {
+  position: absolute; top: 0; right: 8px; font-size: 2rem;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.12));
+}
+
+/* 문장 박스 */
+.q-box {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 18px; padding: 14px 14px;
+  text-align: left;
+}
+.q-text { flex: 1; }
+.q-text .ask {
+  font-size: 0.9rem; font-weight: 800; color: var(--accent);
+  margin-bottom: 6px; opacity: 0.92;
+}
+.card .en { font-weight: 800; font-size: 1.2rem; line-height: 1.45; color: var(--text); }
+.card .ko { color: var(--muted); font-size: 0.95rem; margin-top: 6px; font-style: italic; }
+
+.speak-btn {
+  flex-shrink: 0; width: 46px; height: 46px; border: none; cursor: pointer;
+  border-radius: 50%; font-size: 1.25rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: var(--shadow-sm); transition: transform 0.1s, filter 0.2s;
+}
+.speak-btn:hover { filter: brightness(1.08); }
+.speak-btn:active { transform: scale(0.9); }
+
+/* 전체 대화 듣기 버튼 */
+.dialog-btn {
+  width: 100%; margin-top: 12px; border: 2px solid rgba(108, 92, 231, 0.3); cursor: pointer;
+  padding: 10px 14px; border-radius: 14px; font-weight: 800; font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.9); color: var(--accent);
+  transition: transform 0.1s, background 0.2s;
+}
+.dialog-btn:hover { background: rgba(108, 92, 231, 0.1); }
+.dialog-btn:active { transform: scale(0.97); }
+
+/* ===== 카드 파스텔 색 ===== */
+.card.tone-0 { background: #fff0f6; border-color: #ffd6e8; }
+.card.tone-1 { background: #eef9ff; border-color: #cfeeff; }
+.card.tone-2 { background: #fff8e1; border-color: #ffeeb3; }
+.card.tone-3 { background: #eafbf0; border-color: #c7f0d6; }
+.card.tone-4 { background: #f3eeff; border-color: #ddd0fb; }
+.card.tone-5 { background: #fff1e6; border-color: #ffdcc2; }
+
+/* ===== 단어 클릭 ===== */
+.word {
+  cursor: pointer; padding: 1px 3px; border-radius: 7px;
+  border-bottom: 2px dotted rgba(255, 126, 182, 0.6);
+  transition: background 0.15s, color 0.15s;
+}
+.word:hover { background: rgba(255, 126, 182, 0.16); }
+.word:active { background: var(--primary); color: #fff; }
+
+/* ===== 단어 뜻 풍선 ===== */
+.word-popup {
+  position: absolute; z-index: 1000;
+  min-width: 150px; max-width: 260px;
+  background: #fff; border: 2px solid var(--primary);
+  border-radius: 16px; padding: 12px 14px;
+  box-shadow: 0 12px 30px rgba(74, 47, 77, 0.22);
+  text-align: center; animation: pop 0.16s ease;
+}
+.word-popup.hidden { display: none; }
+@keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.wp-word { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); }
+.wp-meaning { margin-top: 4px; font-size: 0.98rem; color: var(--text); }
+.wp-listen {
+  margin-top: 10px; border: none; cursor: pointer;
+  background: rgba(255, 126, 182, 0.14); color: var(--primary-dark);
+  font-weight: 800; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px;
+}
+.wp-listen:active { transform: scale(0.95); }
+
+/* ===== ⭐ 연습 목록에 담기 버튼 ===== */
+.select-btn {
+  width: 100%; margin-top: 10px; border: 2px solid rgba(255, 126, 182, 0.35); cursor: pointer;
+  padding: 11px 14px; border-radius: 14px; font-weight: 800; font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.9); color: var(--primary-dark);
+  transition: transform 0.1s, background 0.2s, color 0.2s;
+}
+.select-btn.on { background: linear-gradient(135deg, var(--sun), #ffb01f); color: #7a4a00; border-color: transparent; }
+.select-btn:active { transform: scale(0.97); }
+
+/* ===== 정확도 연습 ===== */
+.practice-empty {
+  text-align: center; color: var(--muted); font-size: 1rem;
+  background: rgba(255, 255, 255, 0.6); border: 2px dashed rgba(255, 126, 182, 0.4);
+  border-radius: 16px; padding: 26px 18px; line-height: 1.6;
+}
+.premove {
+  border: none; cursor: pointer; width: 28px; height: 28px; border-radius: 50%;
+  font-size: 0.85rem; font-weight: 800; line-height: 1;
+  background: rgba(251, 113, 133, 0.16); color: var(--neg);
+  transition: transform 0.1s, background 0.2s;
+}
+.premove:hover { background: rgba(251, 113, 133, 0.28); }
+.premove:active { transform: scale(0.9); }
+.pcard { display: flex; flex-direction: column; }
+.mic-area { text-align: center; margin-top: 14px; }
+.mic-btn {
+  width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 1.7rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff;
+  box-shadow: 0 6px 16px rgba(255, 126, 182, 0.45);
+  transition: transform 0.1s, filter 0.2s, box-shadow 0.2s;
+}
+.mic-btn:hover { filter: brightness(1.06); }
+.mic-btn:active { transform: scale(0.92); }
+.mic-btn:disabled { opacity: 0.5; cursor: default; }
+.mic-btn.recording {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  animation: micpulse 1s ease-in-out infinite;
+}
+@keyframes micpulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  70%  { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.mic-label { margin-top: 10px; font-size: 0.88rem; font-weight: 700; color: var(--muted); }
+.pstats {
+  margin-top: 12px; text-align: center; font-size: 0.92rem; color: var(--text);
+  background: rgba(255, 255, 255, 0.78); border-radius: 12px; padding: 9px 10px;
+}
+.pstats .acc { color: var(--primary-dark); }
+.pstats .best { color: var(--pos); }
+.mic-feedback { margin-top: 10px; text-align: center; font-weight: 700; min-height: 22px; }
+.mic-feedback.good { color: var(--pos); }
+.mic-feedback.bad { color: var(--neg); }
+.mic-feedback .heard { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+
+/* ===== Footer ===== */
+.app-footer {
+  max-width: 980px; margin: 0 auto; padding: 16px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 126, 182, 0.18);
+}
+.speed-control { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.speed-control input { accent-color: var(--primary); }
+.voice-status { font-size: 0.78rem; color: var(--muted); }
