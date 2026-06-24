@@ -358,9 +358,7 @@ function renderTimeResult() {
   });
   box.append(txt, speakBtn);
 
-  card.append(top, visual, box);
-  attachMic(card, item, { label: "마이크를 누르고 따라 읽어요" });  // 🎙️ 따라 읽기 (정확도)
-  card.append(makeSelectBtn(item));      // ⭐ 연습 목록에 담기
+  card.append(top, visual, box, makeSelectBtn(item));  // 🔊 듣기 + ⭐ 연습 목록에 담기
   wrap.appendChild(card);
 }
 
@@ -380,28 +378,58 @@ function renderAct() {
 /* =========================================================
  * 3) 조합하기  (시간 + 할 일)
  * ========================================================= */
-let selTimeIdx = null;
-let selActIdx = null;
+let cHour = null;      // 조합: 고른 시 (1~12)
+let cMin = 0;          // 조합: 0 정각 / 30 30분
+let cAmpm = null;      // 조합: "am" 오전 / "pm" 오후
+let selActIdx = null;  // 조합: 고른 할 일
 
 function stripLead(en, lead) { return en.replace(lead, "").replace(/\.$/, ""); }
 
+/* 12시간(시·분·오전오후) → 하루 24시간 기준 분 */
+function to24min(hour, min, ampm) {
+  let h = hour % 12;            // 12 → 0
+  if (ampm === "pm") h += 12;   // 오후는 +12 (12시는 그대로 12)
+  return h * 60 + min;
+}
+
 function renderCombine() {
-  // ① 시간 칩 (누른 칩을 다시 누르면 선택이 취소돼요)
-  const timeRow = document.getElementById("combine-times");
-  timeRow.innerHTML = "";
-  TIMES.forEach((t, i) => {
+  // ① 시 고르기 (1~12) — 시간 말하기 탭과 같은 방식
+  const hourRow = document.getElementById("combine-hours");
+  hourRow.innerHTML = "";
+  for (let hr = 1; hr <= 12; hr++) {
     const chip = document.createElement("button");
-    chip.className = "chip" + (i === selTimeIdx ? " active" : "");
-    chip.innerHTML = `<span class="chip-emoji">${t.clockEmoji}</span><span class="chip-label">${stripLead(t.en, /^It's\s*/)}</span>`;
+    chip.className = "chip chip-sm" + (hr === cHour ? " active" : "");
+    chip.innerHTML = `<span class="chip-label">${hr}시</span>`;
     chip.addEventListener("click", () => {
-      selTimeIdx = (selTimeIdx === i) ? null : i;
+      cHour = (cHour === hr) ? null : hr;
       synth.cancel(); hidePopup(); renderCombine();
-      if (selTimeIdx === i) speak(t.spoken || t.en, 0.85);
     });
-    timeRow.appendChild(chip);
+    hourRow.appendChild(chip);
+  }
+
+  // ② 정각 / 30분
+  const minRow = document.getElementById("combine-mins");
+  minRow.innerHTML = "";
+  [{ m: 0, label: "정각", emoji: "🕐" }, { m: 30, label: "30분", emoji: "🕧" }].forEach(o => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (o.m === cMin ? " active" : "");
+    chip.innerHTML = `<span class="chip-emoji">${o.emoji}</span><span class="chip-label">${o.label}</span>`;
+    chip.addEventListener("click", () => { cMin = o.m; synth.cancel(); hidePopup(); renderCombine(); });
+    minRow.appendChild(chip);
   });
 
-  // ② 할 일 칩 (누른 칩을 다시 누르면 선택이 취소돼요)
+  // ③ 오전 / 오후 (어울리는 시간대를 정하려면 꼭 필요해요)
+  const ampmRow = document.getElementById("combine-ampm");
+  ampmRow.innerHTML = "";
+  [{ v: "am", label: "오전", emoji: "🌅" }, { v: "pm", label: "오후", emoji: "🌙" }].forEach(o => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (o.v === cAmpm ? " active" : "");
+    chip.innerHTML = `<span class="chip-emoji">${o.emoji}</span><span class="chip-label">${o.label}</span>`;
+    chip.addEventListener("click", () => { cAmpm = o.v; synth.cancel(); hidePopup(); renderCombine(); });
+    ampmRow.appendChild(chip);
+  });
+
+  // ④ 할 일 칩 (누른 칩을 다시 누르면 선택이 취소돼요)
   const actRow = document.getElementById("combine-acts");
   actRow.innerHTML = "";
   ACTIVITIES.forEach((a, i) => {
@@ -419,20 +447,23 @@ function renderCombine() {
   // 미리보기
   const prev = document.getElementById("combine-preview");
   prev.innerHTML = "";
-  if (selTimeIdx == null || selActIdx == null) {
+  if (cHour == null || cAmpm == null || selActIdx == null) {
     const hint = document.createElement("div");
     hint.className = "combine-hint";
-    hint.innerHTML = "위에서 <b>시간</b>과 <b>할 일</b>을 하나씩 골라보세요! 🧩";
+    hint.innerHTML = "위에서 <b>시</b> · <b>오전/오후</b> · <b>할 일</b>을 골라보세요! 🧩";
     prev.appendChild(hint);
     return;
   }
 
-  const t = TIMES[selTimeIdx], a = ACTIVITIES[selActIdx];
-  // 시간대가 맞는 짝만 조합할 수 있어요 (예: 8시에 저녁 ❌)
-  const valid = t.min24 >= a.okFrom && t.min24 <= a.okTo;
-  const en = t.en + " " + a.en;
-  const spoken = (t.spoken || t.en) + " " + a.en;
-  const ko = t.ko + " " + a.ko;
+  const ti = buildTimeItem(cHour, cMin);
+  const a = ACTIVITIES[selActIdx];
+  const ampmKo = cAmpm === "pm" ? "오후 " : "오전 ";
+  const min24 = to24min(cHour, cMin, cAmpm);
+  // 시간대가 맞는 짝만 조합할 수 있어요 (예: 오전 8시에 저녁 ❌)
+  const valid = min24 >= a.okFrom && min24 <= a.okTo;
+  const en = ti.en + " " + a.en;
+  const spoken = ti.spoken + " " + a.en;
+  const ko = ampmKo + ti.ko + " " + a.ko;
 
   const div = document.createElement("div");
   div.className = "card preview-card" + (valid ? "" : " invalid");
@@ -441,16 +472,16 @@ function renderCombine() {
   top.className = "card-top";
   const tag = document.createElement("span");
   tag.className = "card-tag";
-  tag.textContent = t.clockEmoji + " " + t.timeKo + " · " + a.actEmoji + " " + a.actKo;
+  tag.textContent = "🕐 " + ampmKo + ti.digital + " · " + a.actEmoji + " " + a.actKo;
   top.append(tag);
 
-  const visual = makeVisual({ h: t.h, m: t.m, actEmoji: a.actEmoji });
+  const visual = makeVisual({ h: cHour, m: cMin, actEmoji: a.actEmoji });
 
   // 어울리지 않는 짝이면 안내만 보여주고 연습 목록에 담을 수 없어요
   if (!valid) {
     const warn = document.createElement("div");
     warn.className = "combine-warn";
-    warn.innerHTML = `🤔 <b>${t.timeKo}</b>에 <b>${a.actKo}</b>? 어울리는 짝이 아니에요!<br>시간이나 할 일을 다시 골라보세요.`;
+    warn.innerHTML = `🤔 <b>${ampmKo}${cHour}시${cMin === 30 ? " 30분" : ""}</b>에 <b>${a.actKo}</b>? 어울리는 짝이 아니에요!<br>오전/오후나 할 일을 다시 골라보세요.`;
     div.append(top, visual, warn);
     prev.appendChild(div);
     return;
@@ -489,7 +520,7 @@ function renderCombine() {
     speak(QUESTION.en + " " + spoken, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
   });
 
-  const practiceItem = { en, spoken, ko, h: t.h, m: t.m, actEmoji: a.actEmoji, word: t.digital + " · " + a.actKo };
+  const practiceItem = { en, spoken, ko, h: cHour, m: cMin, actEmoji: a.actEmoji, word: ampmKo + ti.digital + " · " + a.actKo };
   const on = isSelected(en);
 
   const actions = document.createElement("div");
