@@ -2,7 +2,7 @@
  * 4학년 영어 · What time is it? · 듣고 따라 말하기 웹 앱
  * - 음성 출력 : Web Speech API (SpeechSynthesis)
  * - 단어 클릭 : 발음 + 뜻 풍선
- * - 듣고 따라하기 / 정확도 연습(⭐로 담은 문장 녹음·정확도)
+ * - 시간 말하기 / 할 일 말하기 / 조합하기 / 정확도 연습
  * ========================================================= */
 
 /* ---------- 음성 합성 (TTS) ---------- */
@@ -136,12 +136,12 @@ function makeVisual(item) {
   }
   const em = document.createElement("div");
   em.className = "emoji";
-  em.textContent = item.emoji || "🕰️";
+  em.textContent = item.emoji || item.actEmoji || "🕰️";
   return em;
 }
 
 /* =========================================================
- * 연습 목록 (⭐로 담은 문장)  ※ 참고 페이지와 같은 방식
+ * 연습 목록 (⭐로 담은 문장)
  * ========================================================= */
 let selected = new Map();
 try { (JSON.parse(localStorage.getItem("wti_selected") || "[]") || []).forEach(it => selected.set(it.en, it)); } catch (e) {}
@@ -152,20 +152,27 @@ function toggleSelect(item) {
   else selected.set(item.en, item);
   persistSelected();
   updatePracticeBadge();
-  renderListen();
+  refreshSources();
   if (document.getElementById("tab-practice").classList.contains("active")) renderPractice();
 }
 function updatePracticeBadge() {
   const c = document.getElementById("practice-count");
   if (c) c.textContent = selected.size;
 }
+/* ⭐ 버튼(연습 목록에 담기) 만들기 */
+function makeSelectBtn(item) {
+  const sel = document.createElement("button");
+  sel.className = "select-btn";
+  const on = isSelected(item.en);
+  sel.classList.toggle("on", on);
+  sel.textContent = on ? "✓ 연습 목록에 있음" : "⭐ 연습 목록에 추가";
+  sel.addEventListener("click", e => { e.stopPropagation(); toggleSelect(item); });
+  return sel;
+}
 
 /* =========================================================
- * 1) 듣고 따라하기
+ * 1) 시간 말하기  (It's ___ o'clock.)
  * ========================================================= */
-let listenCat = "all";
-
-/* 묻는 말 카드 : What time is it? */
 function makeQuestionCard() {
   const div = document.createElement("div");
   div.className = "card qcard";
@@ -202,20 +209,12 @@ function makeQuestionCard() {
   });
   box.append(txt, speakBtn);
 
-  const practiceItem = { en: QUESTION.en, ko: QUESTION.ko, emoji: "🕰️", word: "What time is it?" };
-  const sel = document.createElement("button");
-  sel.className = "select-btn";
-  const on = isSelected(QUESTION.en);
-  sel.classList.toggle("on", on);
-  sel.textContent = on ? "✓ 연습 목록에 있음" : "⭐ 연습 목록에 추가";
-  sel.addEventListener("click", e => { e.stopPropagation(); toggleSelect(practiceItem); });
-
-  div.append(top, icon, box, sel);
+  div.append(top, icon, box, makeSelectBtn({ en: QUESTION.en, ko: QUESTION.ko, emoji: "🕰️", word: "묻는 말" }));
   return div;
 }
 
-/* 시간 카드 : It's 8 o'clock. It's time for breakfast. */
-function makeSceneCard(item, tone) {
+function makeAnswerCard(item, tone, opts) {
+  opts = opts || {};
   const div = document.createElement("div");
   div.className = "card tone-" + (tone % 6);
 
@@ -223,7 +222,7 @@ function makeSceneCard(item, tone) {
   top.className = "card-top";
   const tag = document.createElement("span");
   tag.className = "card-tag";
-  tag.textContent = item.actEmoji + " " + item.actKo;
+  tag.textContent = opts.tag || "";
   top.append(tag);
 
   const visual = makeVisual(item);
@@ -232,16 +231,13 @@ function makeSceneCard(item, tone) {
   box.className = "q-box";
   const txt = document.createElement("div");
   txt.className = "q-text";
-  const ask = document.createElement("div");
-  ask.className = "ask";
-  ask.textContent = "🗣️ " + QUESTION.en;
   const en = document.createElement("div");
   en.className = "en";
   en.appendChild(buildWords(item.en));
   const ko = document.createElement("div");
   ko.className = "ko";
   ko.textContent = item.ko;
-  txt.append(ask, en, ko);
+  txt.append(en, ko);
   const speakBtn = document.createElement("button");
   speakBtn.className = "speak-btn";
   speakBtn.setAttribute("aria-label", "문장 듣기");
@@ -252,45 +248,144 @@ function makeSceneCard(item, tone) {
   });
   box.append(txt, speakBtn);
 
-  // 전체 대화 듣기 (What time is it? + 답)
+  div.append(top, visual, box, makeSelectBtn(opts.practiceItem || item));
+  return div;
+}
+
+function renderTime() {
+  document.getElementById("question-card").replaceChildren(makeQuestionCard());
+  const grid = document.getElementById("time-grid");
+  grid.innerHTML = "";
+  TIMES.forEach((t, i) => {
+    const practiceItem = { en: t.en, ko: t.ko, h: t.h, m: t.m, word: t.timeKo };
+    grid.appendChild(makeAnswerCard(t, i, { tag: t.clockEmoji + " " + t.timeKo, practiceItem }));
+  });
+}
+
+/* =========================================================
+ * 2) 할 일 말하기  (It's time for ___.)
+ * ========================================================= */
+function renderAct() {
+  const grid = document.getElementById("act-grid");
+  grid.innerHTML = "";
+  ACTIVITIES.forEach((a, i) => {
+    const item = { en: a.en, ko: a.ko, emoji: a.actEmoji };
+    const practiceItem = { en: a.en, ko: a.ko, emoji: a.actEmoji, word: a.actKo };
+    grid.appendChild(makeAnswerCard(item, i, { tag: a.actEmoji + " " + a.actKo, practiceItem }));
+  });
+}
+
+/* =========================================================
+ * 3) 조합하기  (시간 + 할 일)
+ * ========================================================= */
+let selTimeIdx = null;
+let selActIdx = null;
+
+function stripLead(en, lead) { return en.replace(lead, "").replace(/\.$/, ""); }
+
+function renderCombine() {
+  // ① 시간 칩
+  const timeRow = document.getElementById("combine-times");
+  timeRow.innerHTML = "";
+  TIMES.forEach((t, i) => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (i === selTimeIdx ? " active" : "");
+    chip.innerHTML = `<span class="chip-emoji">${t.clockEmoji}</span><span class="chip-label">${stripLead(t.en, /^It's\s*/)}</span>`;
+    chip.addEventListener("click", () => {
+      selTimeIdx = i; synth.cancel(); hidePopup(); renderCombine();
+      speak(t.en, 0.85);
+    });
+    timeRow.appendChild(chip);
+  });
+
+  // ② 할 일 칩
+  const actRow = document.getElementById("combine-acts");
+  actRow.innerHTML = "";
+  ACTIVITIES.forEach((a, i) => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (i === selActIdx ? " active" : "");
+    chip.innerHTML = `<span class="chip-emoji">${a.actEmoji}</span><span class="chip-label">${stripLead(a.en, /^It's time for\s*/)}</span>`;
+    chip.addEventListener("click", () => {
+      selActIdx = i; synth.cancel(); hidePopup(); renderCombine();
+      speak(a.en, 0.85);
+    });
+    actRow.appendChild(chip);
+  });
+
+  // 미리보기
+  const prev = document.getElementById("combine-preview");
+  prev.innerHTML = "";
+  if (selTimeIdx == null || selActIdx == null) {
+    const hint = document.createElement("div");
+    hint.className = "combine-hint";
+    hint.innerHTML = "위에서 <b>시간</b>과 <b>할 일</b>을 하나씩 골라보세요! 🧩";
+    prev.appendChild(hint);
+    return;
+  }
+
+  const t = TIMES[selTimeIdx], a = ACTIVITIES[selActIdx];
+  const en = t.en + " " + a.en;
+  const ko = t.ko + " " + a.ko;
+
+  const div = document.createElement("div");
+  div.className = "card preview-card";
+
+  const top = document.createElement("div");
+  top.className = "card-top";
+  const tag = document.createElement("span");
+  tag.className = "card-tag";
+  tag.textContent = t.clockEmoji + " " + t.timeKo + " · " + a.actEmoji + " " + a.actKo;
+  top.append(tag);
+
+  const visual = makeVisual({ h: t.h, m: t.m, actEmoji: a.actEmoji });
+
+  const box = document.createElement("div");
+  box.className = "q-box";
+  const txt = document.createElement("div");
+  txt.className = "q-text";
+  const ask = document.createElement("div");
+  ask.className = "ask";
+  ask.textContent = "🗣️ " + QUESTION.en;
+  const enEl = document.createElement("div");
+  enEl.className = "en";
+  enEl.appendChild(buildWords(en));
+  const koEl = document.createElement("div");
+  koEl.className = "ko";
+  koEl.textContent = ko;
+  txt.append(ask, enEl, koEl);
+  const speakBtn = document.createElement("button");
+  speakBtn.className = "speak-btn";
+  speakBtn.setAttribute("aria-label", "문장 듣기");
+  speakBtn.textContent = "🔊";
+  speakBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    speak(en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
+  });
+  box.append(txt, speakBtn);
+
+  // 전체 대화 듣기 (What time is it? + 조합 문장)
   const dialogBtn = document.createElement("button");
   dialogBtn.className = "dialog-btn";
   dialogBtn.textContent = "🎧 묻고 답하기 전체 듣기";
   dialogBtn.addEventListener("click", e => {
     e.stopPropagation();
-    speak(QUESTION.en + " " + item.en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
+    speak(QUESTION.en + " " + en, null, () => div.classList.add("speaking"), () => div.classList.remove("speaking"));
   });
 
-  // ⭐ 연습 목록에 담기 (답 문장)
-  const practiceItem = { en: item.en, ko: item.ko, h: item.h, m: item.m, actEmoji: item.actEmoji, word: item.actKo };
-  const sel = document.createElement("button");
-  sel.className = "select-btn";
-  const on = isSelected(item.en);
-  sel.classList.toggle("on", on);
-  sel.textContent = on ? "✓ 연습 목록에 있음" : "⭐ 연습 목록에 추가";
-  sel.addEventListener("click", e => { e.stopPropagation(); toggleSelect(practiceItem); });
-
-  div.append(top, visual, box, dialogBtn, sel);
-  return div;
+  const practiceItem = { en, ko, h: t.h, m: t.m, actEmoji: a.actEmoji, word: t.digital + " · " + a.actKo };
+  div.append(top, visual, box, dialogBtn, makeSelectBtn(practiceItem));
+  prev.appendChild(div);
 }
 
-function filteredScenes() {
-  if (listenCat === "oclock") return SCENES.filter(s => s.m === 0);
-  if (listenCat === "half") return SCENES.filter(s => s.m === 30);
-  return SCENES;
-}
-
-function renderListen() {
-  document.getElementById("question-card").replaceChildren(makeQuestionCard());
-  const grid = document.getElementById("listen-grid");
-  grid.innerHTML = "";
-  const list = filteredScenes();
-  document.getElementById("listen-count").textContent = list.length + "개";
-  list.forEach((it, i) => grid.appendChild(makeSceneCard(it, i)));
+/* 시간·할 일·조합 화면의 ⭐ 상태를 새로고침 */
+function refreshSources() {
+  renderTime();
+  renderAct();
+  renderCombine();
 }
 
 /* =========================================================
- * 2) 정확도 연습 (마이크 정확도)
+ * 4) 정확도 연습 (마이크 정확도)
  * ========================================================= */
 let stats = {};
 try { stats = JSON.parse(localStorage.getItem("wti_stats") || "{}") || {}; } catch (e) {}
@@ -350,9 +445,7 @@ function scoreMatch(target, heard) {
   if (recall >= 0.5 && precision >= 0.75) score = Math.min(1, score + 0.1);
   return score;
 }
-/* 음성 인식 결과를 보기 좋게 다듬기 (대·소문자 + 문장부호)
- *  예) "what time is it"        → "What time is it?"
- *      "it's 8 o'clock"          → "It's 8 o'clock." */
+/* 음성 인식 결과를 보기 좋게 다듬기 (대·소문자 + 문장부호) */
 function prettyHeard(text, target) {
   let s = (text || "").trim().toLowerCase();
   if (!s) return "";
@@ -402,7 +495,7 @@ function makePracticeCard(item) {
     persistSelected();
     updatePracticeBadge();
     renderPractice();
-    renderListen();
+    refreshSources();
   });
   top.append(tag, remove);
 
@@ -497,28 +590,6 @@ function renderPractice() {
   updatePracticeBadge();
 }
 
-/* =========================================================
- * 주제(시간 묶음) 버튼 만들기
- * ========================================================= */
-function buildCatButtons(containerId, current, onPick) {
-  const wrap = document.getElementById(containerId);
-  wrap.innerHTML = "";
-  CATEGORIES.forEach(c => {
-    const btn = document.createElement("button");
-    btn.className = "cat-btn" + (c.key === current() ? " active" : "");
-    btn.textContent = c.label;
-    btn.addEventListener("click", () => {
-      wrap.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      synth.cancel(); hidePopup();
-      onPick(c.key);
-    });
-    wrap.appendChild(btn);
-  });
-}
-
-buildCatButtons("listen-cats", () => listenCat, k => { listenCat = k; renderListen(); });
-
 /* ---------- 말하기 속도 ---------- */
 document.getElementById("rate").addEventListener("input", e => { speakRate = parseFloat(e.target.value); });
 
@@ -537,5 +608,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 });
 
 /* ---------- 첫 화면 ---------- */
-renderListen();
+renderTime();
+renderAct();
+renderCombine();
 updatePracticeBadge();

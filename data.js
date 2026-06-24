@@ -1,13 +1,10 @@
 /* =========================================================
  * 4학년 영어 · What time is it? · 데이터
  * - 핵심 표현: "What time is it?" / "It's ___ o'clock." / "It's time for ___."
- * - 하루 일과 문장 6개 (교과서 듣기 대본)
- *    🕗 8:00  아침 식사  It's 8 o'clock. It's time for breakfast.
- *    🕣 8:30  학교       It's eight thirty. It's time for school.
- *    🕘 9:00  수업       It's 9 o'clock. It's time for class.
- *    🕛 12:00 점심       It's 12 o'clock. It's time for lunch.
- *    🕕 6:00  저녁       It's 6 o'clock. It's time for dinner.
- *    🕤 10:30 잠자기     It's ten thirty. It's time for bed.
+ * - 영어 수준이 낮은 학생을 위해 문장을 두 조각으로 나눠 익혀요.
+ *    ① 시간 말하기   : It's 8 o'clock.       (🕐 시간 탭)
+ *    ② 할 일 말하기   : It's time for breakfast. (🍽️ 할 일 탭)
+ *    ③ 조합하기       : ①+② = It's 8 o'clock. It's time for breakfast.
  * - 단어를 누르면 뜻·발음을 알 수 있어요.
  * ========================================================= */
 
@@ -17,34 +14,36 @@ const QUESTION = {
   ko: "지금 몇 시예요?",
 };
 
-/* ===== 주제(시간 묶음) ===== */
-const CATEGORIES = [
-  { key: "all",    label: "🌈 하루 종일",        title: "하루 종일" },
-  { key: "oclock", label: "🕐 정각 (o'clock)",   title: "정각" },
-  { key: "half",   label: "🕧 30분 (thirty)",    title: "30분" },
+/* ===== ① 시간 말하기 (It's ___ o'clock.) ===== */
+const TIMES = [
+  { h: 8,  m: 0,  digital: "8:00",  clockEmoji: "🕗", timeKo: "8시",
+    en: "It's 8 o'clock.",   ko: "8시예요." },
+  { h: 8,  m: 30, digital: "8:30",  clockEmoji: "🕣", timeKo: "8시 30분",
+    en: "It's eight thirty.", ko: "8시 30분이에요." },
+  { h: 9,  m: 0,  digital: "9:00",  clockEmoji: "🕘", timeKo: "9시",
+    en: "It's 9 o'clock.",   ko: "9시예요." },
+  { h: 12, m: 0,  digital: "12:00", clockEmoji: "🕛", timeKo: "12시",
+    en: "It's 12 o'clock.",  ko: "12시예요." },
+  { h: 6,  m: 0,  digital: "6:00",  clockEmoji: "🕕", timeKo: "6시",
+    en: "It's 6 o'clock.",   ko: "6시예요." },
+  { h: 10, m: 30, digital: "10:30", clockEmoji: "🕤", timeKo: "10시 30분",
+    en: "It's ten thirty.",  ko: "10시 30분이에요." },
 ];
 
-/* ===== 시간 카드 =====
- * h, m    : 시계 바늘 위치 (시, 분)
- * digital : 시계 아래 디지털 표시
- * timeKo  : 시간 우리말
- * act     : 일과(영어)  /  actKo : 일과(우리말)  /  actEmoji : 일과 그림
- * en      : 따라 말할 답 문장 (정확도 측정 대상)
- * ko      : 우리말 뜻
- */
-const SCENES = [
-  { h: 8,  m: 0,  digital: "8:00",  timeKo: "8시",       act: "breakfast", actKo: "아침 식사", actEmoji: "🍳",
-    en: "It's 8 o'clock. It's time for breakfast.", ko: "8시예요. 아침 먹을 시간이에요." },
-  { h: 8,  m: 30, digital: "8:30",  timeKo: "8시 30분",  act: "school",    actKo: "학교",      actEmoji: "🏫",
-    en: "It's eight thirty. It's time for school.", ko: "8시 30분이에요. 학교 갈 시간이에요." },
-  { h: 9,  m: 0,  digital: "9:00",  timeKo: "9시",       act: "class",     actKo: "수업",      actEmoji: "📖",
-    en: "It's 9 o'clock. It's time for class.",     ko: "9시예요. 수업할 시간이에요." },
-  { h: 12, m: 0,  digital: "12:00", timeKo: "12시",      act: "lunch",     actKo: "점심",      actEmoji: "🍱",
-    en: "It's 12 o'clock. It's time for lunch.",    ko: "12시예요. 점심 먹을 시간이에요." },
-  { h: 6,  m: 0,  digital: "6:00",  timeKo: "6시",       act: "dinner",    actKo: "저녁",      actEmoji: "🍽️",
-    en: "It's 6 o'clock. It's time for dinner.",    ko: "6시예요. 저녁 먹을 시간이에요." },
-  { h: 10, m: 30, digital: "10:30", timeKo: "10시 30분", act: "bed",       actKo: "잠자기",    actEmoji: "🛏️",
-    en: "It's ten thirty. It's time for bed.",      ko: "10시 30분이에요. 잘 시간이에요." },
+/* ===== ② 할 일 말하기 (It's time for ___.) ===== */
+const ACTIVITIES = [
+  { act: "breakfast", actKo: "아침 식사", actEmoji: "🍳",
+    en: "It's time for breakfast.", ko: "아침 먹을 시간이에요." },
+  { act: "school",    actKo: "학교",      actEmoji: "🏫",
+    en: "It's time for school.",    ko: "학교 갈 시간이에요." },
+  { act: "class",     actKo: "수업",      actEmoji: "📖",
+    en: "It's time for class.",     ko: "수업할 시간이에요." },
+  { act: "lunch",     actKo: "점심",      actEmoji: "🍱",
+    en: "It's time for lunch.",     ko: "점심 먹을 시간이에요." },
+  { act: "dinner",    actKo: "저녁",      actEmoji: "🍽️",
+    en: "It's time for dinner.",    ko: "저녁 먹을 시간이에요." },
+  { act: "bed",       actKo: "잠자기",    actEmoji: "🛏️",
+    en: "It's time for bed.",       ko: "잘 시간이에요." },
 ];
 
 /* ===== 단어 뜻 사전 ===== */

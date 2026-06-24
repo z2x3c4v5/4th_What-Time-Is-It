@@ -16,11 +16,13 @@
     <div class="balloon b2"></div>
     <div class="balloon b3"></div>
     <h1>🕐 What time is it? 듣고 따라 말해요!</h1>
-    <p class="subtitle">What time is it? · It's 8 o'clock. It's time for breakfast.</p>
+    <p class="subtitle">It's 8 o'clock. + It's time for breakfast. 🧩</p>
   </header>
 
   <nav class="tabs">
-    <button class="tab-btn active" data-tab="listen">🗣️ 듣고 따라하기</button>
+    <button class="tab-btn active" data-tab="time">🕐 시간 말하기</button>
+    <button class="tab-btn" data-tab="act">🍽️ 할 일 말하기</button>
+    <button class="tab-btn" data-tab="combine">🧩 조합하기</button>
     <button class="tab-btn" data-tab="practice">🎤 정확도 연습 <span id="practice-count" class="tab-count">0</span></button>
   </nav>
 
@@ -32,24 +34,45 @@
   </div>
 
   <main>
-    <!-- ===== 듣고 따라하기 ===== -->
-    <section id="tab-listen" class="tab-panel active">
+    <!-- ===== ① 시간 말하기 ===== -->
+    <section id="tab-time" class="tab-panel active">
       <div class="section-block">
-        <h2>🗣️ 듣고 따라 말해 봐요 <span class="count" id="listen-count">6개</span></h2>
-        <div class="cat-switch" id="listen-cats"></div>
-        <p class="hint">시계를 보고 <b>🔊 듣기</b> 로 문장을 들어보세요. 영어 낱말을 누르면 <b>뜻과 발음</b>을 알 수 있어요. 마음에 드는 문장은 <b>⭐ 연습 목록에 추가</b> 를 눌러 담고, <b>정확도 연습</b> 탭에서 마이크로 따라 말해 점수를 받아보세요!</p>
+        <h2>🕐 시간을 말해요 <span class="count">It's ~ o'clock.</span></h2>
+        <p class="hint">시계를 보고 <b>🔊 듣기</b> 로 시간 문장을 들어보세요. 낱말을 누르면 <b>뜻과 발음</b>이 나와요. <b>⭐</b> 로 담으면 <b>정확도 연습</b> 탭에서 따라 말할 수 있어요.</p>
         <div id="question-card"></div>
-        <div id="listen-grid" class="card-grid"></div>
+        <div id="time-grid" class="card-grid"></div>
       </div>
     </section>
 
-    <!-- ===== 정확도 연습 ===== -->
+    <!-- ===== ② 할 일 말하기 ===== -->
+    <section id="tab-act" class="tab-panel">
+      <div class="section-block">
+        <h2>🍽️ 할 일을 말해요 <span class="count">It's time for ~.</span></h2>
+        <p class="hint">그림을 보고 <b>🔊 듣기</b> 로 "It's time for ~." 문장을 들어보세요. <b>⭐</b> 로 담아 <b>정확도 연습</b> 탭에서 따라 말해요.</p>
+        <div id="act-grid" class="card-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===== ③ 조합하기 ===== -->
+    <section id="tab-combine" class="tab-panel">
+      <div class="section-block">
+        <h2>🧩 조합해서 만들어요</h2>
+        <p class="hint">① <b>시간</b>을 고르고 ② <b>할 일</b>을 고르면 긴 문장이 완성돼요! <b>🔊</b> 로 듣고 <b>⭐ 연습 목록에 담기</b> 를 눌러 <b>정확도 연습</b> 탭으로 보내 보세요.</p>
+        <div class="combine-step"><span class="step-no">①</span> 시간을 골라요</div>
+        <div id="combine-times" class="chip-row"></div>
+        <div class="combine-step"><span class="step-no">②</span> 할 일을 골라요</div>
+        <div id="combine-acts" class="chip-row"></div>
+        <div id="combine-preview"></div>
+      </div>
+    </section>
+
+    <!-- ===== ④ 정확도 연습 ===== -->
     <section id="tab-practice" class="tab-panel">
       <div class="section-block">
         <h2>🎤 정확도 연습</h2>
-        <p class="hint">⭐ 로 담은 문장을 <b>듣고 따라 말하면</b> 마이크가 <b>정확도</b>를 측정해요! <b>듣고 따라하기</b> 탭에서 카드 아래 <b>⭐ 연습 목록에 추가</b> 를 눌러 연습할 문장을 담아보세요. (크롬에서 가장 잘 돼요 😊)</p>
+        <p class="hint">⭐ 로 담은 문장을 <b>듣고 따라 말하면</b> 마이크가 <b>정확도</b>를 측정해요! 짧은 문장도, 조합한 긴 문장도 모두 연습할 수 있어요. (크롬에서 가장 잘 돼요 😊)</p>
         <p id="practice-empty" class="practice-empty">
-          아직 담은 문장이 없어요! <b>듣고 따라하기</b> 탭에서 <b>⭐</b> 로 연습할 문장을 담아보세요.
+          아직 담은 문장이 없어요! <b>시간 말하기 · 할 일 말하기 · 조합하기</b> 탭에서 <b>⭐</b> 로 문장을 담아보세요.
         </p>
         <div id="practice-list" class="card-grid"></div>
       </div>
